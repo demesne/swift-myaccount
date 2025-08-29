@@ -85,7 +85,7 @@ public struct PasskeyDialogView: UIViewControllerRepresentable {
                     if !registrationOptions.excludeCredentials.isEmpty {
                         request.excludedCredentials = registrationOptions.excludeCredentials.map { ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(credentialID: $0, transports: []) }
                     }
-                    request.attestationPreference = .direct // Use direct attestation for security keys
+                    request.attestationPreference = registrationOptions
                     request.userVerificationPreference = registrationOptions.userVerificationPreference
                     requests.append(request)
                     logDebug("Created ASAuthorizationSecurityKeyPublicKeyCredentialRegistrationRequest", category: "PasskeyDialogView-iOS")

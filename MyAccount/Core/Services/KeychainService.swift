@@ -25,17 +25,31 @@ class KeychainServiceImpl: KeychainService {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: key,
-            kSecValueData as String: data
+            kSecAttrAccount as String: key
         ]
         
-        // Delete any existing item
-        SecItemDelete(query as CFDictionary)
+        // The attributes you want to update (in this case, the data)
+        let attributesToUpdate: [String: Any] = [kSecValueData as String: data]
         
-        // Add new item
-        let status = SecItemAdd(query as CFDictionary, nil)
+        // First, try to update an existing item
+        let status = SecItemUpdate(query as CFDictionary, attributesToUpdate as CFDictionary)
         
-        guard status == errSecSuccess else {
+        // If the item doesn't exist, add it.
+        if status == errSecItemNotFound {
+            let addQuery: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: service,
+                kSecAttrAccount as String: key,
+                kSecValueData as String: data
+            ]
+            
+            let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+            
+            guard addStatus == errSecSuccess else {
+                throw KeychainError.saveFailed(addStatus)
+            }
+        } else if status != errSecSuccess {
+            // Handle any other update failures
             throw KeychainError.saveFailed(status)
         }
     }
